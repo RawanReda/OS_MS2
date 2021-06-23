@@ -8,6 +8,7 @@ public class CPU {
     private Word[] memory;
     private int pidcount;
     private int memsize;
+    private Queue scheduler;
 
 
     // memory
@@ -18,6 +19,7 @@ public class CPU {
         memory = new Word[32];
         pidcount = 1;
         memsize = 0;
+
     }
 
     public void allocator(File file) throws IOException {
