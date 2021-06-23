@@ -8,7 +8,7 @@ public class CPU {
     private Word[] memory;
     private int pidcount;
     private int memsize;
-    private Queue s;
+    private ArrayList<Integer> queue;
 
 
     // memory
@@ -19,11 +19,12 @@ public class CPU {
         memory = new Word[32];
         pidcount = 1;
         memsize = 0;
-
+        this.queue = new ArrayList<Integer>();
     }
 
     public void allocator(File file) throws IOException {
         PCB();
+        queue.add(pidcount);
         int ins = 0;
         BufferedReader br = new BufferedReader(new FileReader(file));
         String st;
@@ -35,6 +36,8 @@ public class CPU {
         memsize+=2;
         memory[(memsize-ins-3)].setValue(memory[(memsize-ins-3)].getValue() + (memsize + "")); //process end boundary concatenation
         pidcount++;
+        if(queue.size() == 3)
+            scheduler();
     }
 
     public void PCB ()
@@ -49,6 +52,48 @@ public class CPU {
         memory[memsize] = new Word("Memory Boundaries", temp+ "" + ","); // memory boundaries
         memsize ++;
     }
+
+    public void scheduler(){
+        while (!queue.isEmpty()){
+
+            // 1 , 2 , 3
+            // p1
+            // 1 --> 0 - 8
+                // pc --> index 2 - (4 - 6)
+                // ms1
+                 // update pc
+                // 4 5
+               // break
+            if(queue.get(0) == 1) {
+                String[] memboundry = memory[3].getValue().split(",");
+                int noIns = Integer.parseInt(memboundry[0]) + Integer.parseInt(memboundry[1]);
+                if (noIns != 1) {
+               //     memory[3-1]
+                }
+            }
+            else
+                if(queue.get(0) == 2){
+
+                }
+                else{
+
+                }
+               // p2
+            // 2 --> 9 - 20
+            // mem boun.
+            // 2 --> 12 - 1 = 11
+            // pc --> index (temp + 2) - (13 - 17)
+            // ms1
+            // update pc
+            // 13 14
+            // break
+            // p3
+            // 23 - 1 = 22 (pc)
+            // 3 --> 20 - 31
+            //
+        }
+    }
+
 
     public static void main(String[] args) throws IOException {
         CPU C = new CPU();
