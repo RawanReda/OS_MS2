@@ -8,7 +8,6 @@ public class CPU {
     private Word[] memory;
     private int pidcount;
     private int memsize;
-    private Queue scheduler;
 
 
     // memory
