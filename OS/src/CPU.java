@@ -22,16 +22,15 @@ public class CPU {
     }
 
 
-
-
-    public void assign(String x, String y) {
+    public void assign(String x, String y, int index) {
 //        memory.put(x, y);
+        memory[index] = new Word(x, y);
+
     }
 
     public int add(int x, int y) {
         x = x + y;
         return x;
-
     }
 
     public static String input() {
@@ -46,7 +45,7 @@ public class CPU {
         System.out.println(s);
     }
 
-    public static void writeFile(String x, String y) throws IOException {
+    public void writeFile(String x, String y) throws IOException {
         FileWriter csvWriter = new FileWriter(x);
         csvWriter.append(y);
         csvWriter.close();
@@ -61,11 +60,10 @@ public class CPU {
         }
         csvReader.close();
         return y;
-
     }
 
 
-    public void interpreter(String st) throws IOException {
+    public void interpreter(String st, int index) throws IOException {
 
 
         String[] code = st.split(" ");
@@ -76,10 +74,11 @@ public class CPU {
 
                 if (code.length == 3) {
                     String x = input();
-                    assign(code[1], x);
+                    assign(code[1], x, index);
+                    index++;
                 } else {
                     if (code[2].equals("readFile")) {
-//                            assign(code[1], readFile(memory.get(code[3])));
+                        assign(code[1], readFile(memory[index - 1].getValue()), index);
                     }
 
                 }
@@ -103,13 +102,13 @@ public class CPU {
 
             case "writeFile":
 
-//                    writeFile(memory.get(code[1]), memory.get(code[2]));
+                writeFile(memory[index - 3].getValue(), memory[index - 2].getValue());
 
                 break;
 
             case "add": //call add method
-//                    String a = "" + add(Integer.parseInt(memory.get(code[1])), Integer.parseInt(memory.get(code[2])));
-//                    assign(code[1], a);
+                String a = "" + add(Integer.parseInt(memory[index - 3].getValue()), Integer.parseInt(memory[index - 2].getValue()));
+                assign(code[1], a, index - 3);
                 break;
 
             default:
@@ -133,8 +132,8 @@ public class CPU {
         memsize += 2;
         memory[(memsize - ins - 3)].setValue(memory[(memsize - ins - 3)].getValue() + (memsize + "")); //process end boundary concatenation
         pidcount++;
-//        if (queue.size() == 3)
-//            scheduler();
+      if (queue.size() == 3)
+            scheduler();
     }
 
     public void PCB() {
@@ -149,92 +148,52 @@ public class CPU {
         memsize++;
     }
 
-    public void scheduler1() throws IOException {
+    public void scheduler() throws IOException {
         // loop over the queue
         // check which id the program belongs to
         // depending on the id, I need to check the number of instuctions remaining,
         // the pc value to know which instruction I will execute
         // If there are remaining instruction, put the program back to the queue, else remove the program.
 
-        while (!q.isEmpty()) {
+        while (!(q.isEmpty())) {
             int pNum = q.poll();
             int num_instructions = 0;
             if (pNum == 1) {
                 String[] s = memory[3].getValue().split(",");
                 int max = Integer.parseInt(s[1] + "");
                 int pc = Integer.parseInt(memory[2].getValue());
-                num_instructions = max - pc-2;
+                num_instructions = max - pc - 2;
                 if (num_instructions != 0) {
                     for (int i = 0; i < 2 && num_instructions > 2; i++) {
-                        interpreter(memory[pc].getValue());
+                        interpreter(memory[pc].getValue(), max - 2);
                     }
                 } else q.add(pNum);
             } else if (pNum == 2) {
                 String[] s = memory[12].getValue().split(",");
                 int max = Integer.parseInt(s[1] + "");
                 int pc = Integer.parseInt(memory[11].getValue());
-                num_instructions = max - pc-2;
+                num_instructions = max - pc - 2;
                 if (num_instructions != 0) {
                     for (int i = 0; i < 2 && num_instructions > 2; i++) {
-                        interpreter(memory[pc].getValue());
+                        interpreter(memory[pc].getValue(), max - 2);
                     }
                 } else q.add(pNum);
             } else {
-                    String[] s = memory[23].getValue().split(",");
-                    int max = Integer.parseInt(s[1] + "");
-                    int pc = Integer.parseInt(memory[22].getValue());
-                    num_instructions = max - pc-2;
-                    if (num_instructions != 0) {
-                        for (int i = 0; i < 2 && num_instructions > 2; i++) {
-                            interpreter(memory[pc].getValue());
-                        }
+                String[] s = memory[23].getValue().split(",");
+                int max = Integer.parseInt(s[1] + "");
+                int pc = Integer.parseInt(memory[22].getValue());
+                num_instructions = max - pc - 2;
+                if (num_instructions != 0) {
+                    for (int i = 0; i < 2 && num_instructions > 2; i++) {
+                        interpreter(memory[pc].getValue(), max - 2);
                     }
-                    else q.add(pNum);
+                } else q.add(pNum);
 
             }
         }
 
 
     }
-
-    public void scheduler() {
-        while (!queue.isEmpty()) {
-
-            // 1 , 2 , 3
-            // p1
-            // 1 --> 0 - 8
-            // pc --> index 2 - (4 - 6)
-            // ms1
-            // update pc
-            // 4 5
-            // break
-            if (queue.get(0) == 1) {
-                String[] memboundry = memory[3].getValue().split(",");
-                int noIns = Integer.parseInt(memboundry[0]) + Integer.parseInt(memboundry[1]);
-                if (noIns != 1) {
-                    //     memory[3-1]
-                }
-            } else if (queue.get(0) == 2) {
-
-            } else {
-
-            }
-            // p2
-            // 2 --> 9 - 20
-            // mem boun.
-            // 2 --> 12 - 1 = 11
-            // pc --> index (temp + 2) - (13 - 17)
-            // ms1
-            // update pc
-            // 13 14
-            // break
-            // p3
-            // 23 - 1 = 22 (pc)
-            // 3 --> 20 - 31
-            //
-        }
-    }
-
 
     public static void main(String[] args) throws IOException {
         CPU C = new CPU();
@@ -245,7 +204,7 @@ public class CPU {
         File file3 = new File("Program 3.txt");
         C.allocator(file3);
 
-        for (int i = 0; i < C.memory.length; i++) {
+     for (int i = 0; i < C.memory.length; i++) {
             if (C.memory[i] != null) {
                 System.out.println(i);
                 System.out.println(C.memory[i].getKey() + " " + C.memory[i].getValue());
