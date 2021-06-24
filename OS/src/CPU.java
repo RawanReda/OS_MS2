@@ -97,6 +97,10 @@ public class CPU {
                     print(code[1]);
                 else
 //                        print(memory.get(code[1]));
+                if(code[1].equals(memory[index-3].getKey()))
+                    print(memory[index-3].getValue());
+                else
+                    print(memory[index-2].getValue());
 
                     break;
 
