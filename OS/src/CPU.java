@@ -120,7 +120,7 @@ public class CPU {
 
     public void allocator(File file) throws IOException {
         PCB();
-        queue.add(pidcount);
+        q.add(pidcount);
         int ins = 0;
         BufferedReader br = new BufferedReader(new FileReader(file));
         String st;
@@ -132,7 +132,7 @@ public class CPU {
         memsize += 2;
         memory[(memsize - ins - 3)].setValue(memory[(memsize - ins - 3)].getValue() + (memsize + "")); //process end boundary concatenation
         pidcount++;
-      if (queue.size() == 3)
+        if (q.size() == 3)
             scheduler();
     }
 
@@ -164,30 +164,73 @@ public class CPU {
                 int pc = Integer.parseInt(memory[2].getValue());
                 num_instructions = max - pc - 2;
                 if (num_instructions != 0) {
-                    for (int i = 0; i < 2 && num_instructions > 2; i++) {
+                    if (num_instructions == 1) {
+                        System.out.println("ok "+  memory[pc].getValue());
                         interpreter(memory[pc].getValue(), max - 2);
+                        pc++;
+                        memory[2].setValue(pc + "");
+                    } else {
+                        for (int i = 0; i < 2 && num_instructions >= 2; i++) {
+                            System.out.println("ok "+  memory[pc].getValue());
+
+                        interpreter(memory[pc].getValue(), max - 2);
+                            pc++;
+                            memory[2].setValue(pc + "");
+                        }
                     }
-                } else q.add(pNum);
+
+
+                }
+                if(num_instructions!=0) q.add(pNum);
             } else if (pNum == 2) {
                 String[] s = memory[12].getValue().split(",");
                 int max = Integer.parseInt(s[1] + "");
                 int pc = Integer.parseInt(memory[11].getValue());
                 num_instructions = max - pc - 2;
                 if (num_instructions != 0) {
-                    for (int i = 0; i < 2 && num_instructions > 2; i++) {
+                    if (num_instructions == 1) {
+                        System.out.println("ok2 "+ memory[pc].getValue());
+
                         interpreter(memory[pc].getValue(), max - 2);
+                        pc++;
+                        memory[11].setValue(pc + "");
+                    } else {
+                        for (int i = 0; i < 2 && num_instructions >= 2; i++) {
+                            System.out.println("ok2 "+ memory[pc].getValue());
+
+                        interpreter(memory[pc].getValue(), max - 2);
+                            pc++;
+                            memory[11].setValue(pc + "");
+                        }
                     }
-                } else q.add(pNum);
+
+
+                }
+                if(num_instructions!=0) q.add(pNum);
             } else {
                 String[] s = memory[23].getValue().split(",");
                 int max = Integer.parseInt(s[1] + "");
                 int pc = Integer.parseInt(memory[22].getValue());
                 num_instructions = max - pc - 2;
                 if (num_instructions != 0) {
-                    for (int i = 0; i < 2 && num_instructions > 2; i++) {
+                    if (num_instructions == 1) {
+                        System.out.println("ok3 "+ memory[pc].getValue());
+
                         interpreter(memory[pc].getValue(), max - 2);
+                        pc++;
+                        memory[pc].setValue(pc + "");
+                    } else {
+                        for (int i = 0; i < 2 && num_instructions >= 2; i++) {
+                            System.out.println("ok3 "+ memory[pc].getValue());
+
+                        interpreter(memory[pc].getValue(), max - 2);
+                            pc++;
+                            memory[22].setValue(pc + "");
+                        }
                     }
-                } else q.add(pNum);
+
+
+                } if(num_instructions!=0) q.add(pNum);
 
             }
         }
@@ -204,7 +247,7 @@ public class CPU {
         File file3 = new File("Program 3.txt");
         C.allocator(file3);
 
-     for (int i = 0; i < C.memory.length; i++) {
+        for (int i = 0; i < C.memory.length; i++) {
             if (C.memory[i] != null) {
                 System.out.println(i);
                 System.out.println(C.memory[i].getKey() + " " + C.memory[i].getValue());
