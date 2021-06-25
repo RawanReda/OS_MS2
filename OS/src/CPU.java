@@ -9,7 +9,7 @@ public class CPU {
     private ArrayList<Integer> queue;
     private Queue<Integer> q;
 
-    // print:
+    // print::
     // when we create a process -> PCB
     // print the lines of code
     // print PCB before and after the scheduler to show states + include quanta
