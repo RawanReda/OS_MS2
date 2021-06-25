@@ -9,11 +9,6 @@ public class CPU {
     private ArrayList<Integer> queue;
     private Queue<Integer> q;
 
-    // memory
-    // round robin
-    // pcb
-
-
     // print:
     // when we create a process -> PCB
     // print the lines of code
@@ -147,6 +142,7 @@ public class CPU {
         while ((st = br.readLine()) != null) {
             ins++;
             memory[memsize] = new Word("Ins" + (ins + ""), st);
+            System.out.println(memory[memsize].getValue());
             memsize++;
         }
         memsize += 2;
@@ -156,7 +152,7 @@ public class CPU {
         if (q.size() == 3){
             System.out.println("///////////////////////////////////////////////////////////////////////");
             System.out.println();
-            System.out.println();
+//            System.out.println();
             scheduler();}
     }
 
@@ -223,7 +219,7 @@ public class CPU {
                 int max = Integer.parseInt(s[1] + "");
                 int pc = Integer.parseInt(memory[11].getValue());
                 num_instructions = max - pc - 1;
-                System.out.println("22222222222222_"+ num_instructions);
+
                 if (num_instructions != 0) {
                     if (num_instructions == 1) {
                         quanta++;
@@ -313,7 +309,7 @@ public class CPU {
     }
 
     public static void main(String[] args) throws IOException {
-        System.out.println("Processes created: ");
+//        System.out.println("Processes created: ");
         CPU C = new CPU();
         File file1 = new File("Program 1.txt");
         C.allocator(file1);
