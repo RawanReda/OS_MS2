@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.*;
 
 public class CPU {
-
+//
     static class PCB{
         int id;
         int state;
