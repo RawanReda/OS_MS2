@@ -3,11 +3,19 @@ import java.util.*;
 
 public class CPU {
 
+    static class PCB{
+        int id;
+        int state;
+        int PC;
+        int max;
+        int min;
+
+    }
     private Word[] memory;
     private int pidcount;
     private int memsize;
     private ArrayList<Integer> queue;
-    private Queue<Integer> q;
+    private Queue<PCB> q;
 
     // print::
     // when we create a process -> PCB
@@ -19,7 +27,7 @@ public class CPU {
         memory = new Word[32];
         pidcount = 1;
         memsize = 0;
-        q = new LinkedList<Integer>();
+        q = new LinkedList<PCB>();
         this.queue = new ArrayList<Integer>();
     }
 
@@ -116,7 +124,6 @@ public class CPU {
                 break;
 
             case "writeFile":
-
                 writeFile(memory[index].getValue(), memory[index + 1].getValue());
                 System.out.println("Name of the file being written: " + memory[index].getValue() + ", Value written to the file: " + memory[index + 1].getValue());
                 break;
@@ -134,8 +141,8 @@ public class CPU {
     }
 
     public void allocator(File file) throws IOException {
-        PCB();
-        q.add(pidcount);
+        int start_index_of_pcb= memsize;
+        memsize+=4;
         int ins = 0;
         BufferedReader br = new BufferedReader(new FileReader(file));
         String st;
@@ -146,26 +153,37 @@ public class CPU {
             memsize++;
         }
         memsize += 2;
-        memory[(memsize - ins - 3)].setValue(memory[(memsize - ins - 3)].getValue() + (memsize - 1 + "")); //process end boundary concatenation
-        print_pcb(pidcount, 0);
+
+        int max_boundary= memsize-1;
+        PCB(start_index_of_pcb, max_boundary);
+        //process end boundary concatenation
+
         pidcount++;
         if (q.size() == 3){
             System.out.println("///////////////////////////////////////////////////////////////////////");
             System.out.println();
-//            System.out.println();
             scheduler();}
     }
 
-    public void PCB() {
-        int temp = memsize;
-        memory[memsize] = new Word("Process Id:", pidcount + ""); // process id
-        memsize++;
-        memory[memsize] = new Word("Process State:", "Not Running"); // process state
-        memsize++;
-        memory[memsize] = new Word("PC:", (memsize + 2) + ""); // PC
-        memsize++;
-        memory[memsize] = new Word("Memory Boundaries:", temp + "" + ","); // memory boundaries
-        memsize++;
+    public void PCB(int temp, int max_boundary) {
+        PCB process= new PCB();
+        memory[temp] = new Word("Process Id:", pidcount + ""); // process id
+        process.id= temp;
+        temp++;
+        memory[temp] = new Word("Process State:", "Not Running"); // process state
+        process.state= temp;
+        temp++;
+        memory[temp] = new Word("PC:", (temp + 2) + ""); // PC
+        process.PC= temp;
+        temp++;
+        memory[temp] = new Word("Memory Boundaries:", temp + "" + ","+ (max_boundary + "")); // memory boundaries
+        process.min= temp;
+        process.max= temp;
+
+        System.out.println("PCB info: "+ process.id+" "+ process.state+" "+ process.PC+" "+process.min);
+        print_pcb(process, 0);
+        q.add(process);
+
     }
 
     public void scheduler() throws IOException {
@@ -174,17 +192,17 @@ public class CPU {
         // depending on the id, I need to check the number of instuctions remaining,
         // the pc value to know which instruction I will execute
         // If there are remaining instruction, put the program back to the queue, else remove the program.
-
+        int quanta_fixed=3;
         while (!(q.isEmpty())) {
-            int pNum = q.poll();
+            PCB pNum = q.poll();
             int quanta = 0;
             int num_instructions = 0;
-            if (pNum == 1) {
-                memory[1].setValue("Running");
+            if (pNum.id == 1) {
+                memory[pNum.state].setValue("Running");
                 print_pcb(pNum, quanta);
-                String[] s = memory[3].getValue().split(",");
+                String[] s = memory[pNum.max].getValue().split(",");
                 int max = Integer.parseInt(s[1] + "");
-                int pc = Integer.parseInt(memory[2].getValue());
+                int pc = Integer.parseInt(memory[pNum.PC].getValue());
                 num_instructions = max - pc - 1;
                 if (num_instructions != 0) {
                     if (num_instructions == 1) {
@@ -193,31 +211,31 @@ public class CPU {
 
                         interpreter(memory[pc].getValue(), max - 1);
                         pc++;
-                        memory[2].setValue(pc + "");
+                        memory[pNum.PC].setValue(pc + "");
                         num_instructions-=1;
                     } else {
-                        for (int i = 0; i < 2 && num_instructions >= 2; i++) {
+                        for (int i = 0; i < quanta_fixed && num_instructions >= quanta_fixed; i++) {
                             System.out.println(memory[pc].getKey() + " " + memory[pc].getValue());
                             quanta++;
                             interpreter(memory[pc].getValue(), max - 1);
                             pc++;
-                            memory[2].setValue(pc + "");
+                            memory[pNum.PC].setValue(pc + "");
                         }
-                        num_instructions-=2;
+                        num_instructions-=quanta_fixed;
                     }
 
 
                 }
                 if (num_instructions > 0) q.add(pNum);
-                memory[1].setValue("Not Running");
+                memory[pNum.state].setValue("Not Running");
                 print_pcb(pNum, quanta);
-            } else if (pNum == 2) {
+            } else if (pNum.id == 2) {
 
-                memory[10].setValue("Running");
+                memory[pNum.state].setValue("Running");
                 print_pcb(pNum, quanta);
-                String[] s = memory[12].getValue().split(",");
+                String[] s = memory[pNum.max].getValue().split(",");
                 int max = Integer.parseInt(s[1] + "");
-                int pc = Integer.parseInt(memory[11].getValue());
+                int pc = Integer.parseInt(memory[pNum.PC].getValue());
                 num_instructions = max - pc - 1;
 
                 if (num_instructions != 0) {
@@ -227,30 +245,30 @@ public class CPU {
 
                         interpreter(memory[pc].getValue(), max - 1);
                         pc++;
-                        memory[11].setValue(pc + "");
+                        memory[pNum.PC].setValue(pc + "");
                         num_instructions-=1;
                     } else {
-                        for (int i = 0; i < 2 && num_instructions >= 2; i++) {
+                        for (int i = 0; i < quanta_fixed && num_instructions >= quanta_fixed; i++) {
                             System.out.println(memory[pc].getKey() + " " + memory[pc].getValue());
                             quanta++;
                             interpreter(memory[pc].getValue(), max - 1);
                             pc++;
-                            memory[11].setValue(pc + "");
+                            memory[pNum.PC].setValue(pc + "");
                         }
-                        num_instructions-=2;
+                        num_instructions-=quanta_fixed;
                     }
 
 
                 }
                 if (num_instructions > 0) q.add(pNum);
-                memory[10].setValue("Not Running");
+                memory[pNum.state].setValue("Not Running");
                 print_pcb(pNum, quanta);
             } else {
-                memory[21].setValue("Running");
+                memory[pNum.state].setValue("Running");
                 print_pcb(pNum, quanta);
-                String[] s = memory[23].getValue().split(",");
+                String[] s = memory[pNum.min].getValue().split(",");
                 int max = Integer.parseInt(s[1] + "");
-                int pc = Integer.parseInt(memory[22].getValue());
+                int pc = Integer.parseInt(memory[pNum.PC].getValue());
                 num_instructions = max - pc - 1;
                 if (num_instructions != 0) {
                     if (num_instructions == 1) {
@@ -262,48 +280,36 @@ public class CPU {
                         memory[pc].setValue(pc + "");
                         num_instructions-=1;
                     } else {
-                        for (int i = 0; i < 2 && num_instructions >= 2; i++) {
+                        for (int i = 0; i < quanta_fixed && num_instructions >= quanta_fixed; i++) {
                             System.out.println(memory[pc].getKey() + " " + memory[pc].getValue());
                             quanta++;
                             interpreter(memory[pc].getValue(), max - 1);
                             pc++;
-                            memory[22].setValue(pc + "");
+                            memory[pNum.PC].setValue(pc + "");
                         }
-                        num_instructions-=2;
+                        num_instructions-=quanta_fixed;
                     }
 
 
                 }
                 if (num_instructions > 0) q.add(pNum);
-                memory[21].setValue("Not Running");
+                memory[pNum.state].setValue("Not Running");
                 print_pcb(pNum, quanta);
             }
         }
-
-
     }
 
-    private void print_pcb(int pNum, int quanta) {
+    private void print_pcb(PCB pNum, int quanta) {
         System.out.println("-------------------------------------------------------------------");
         if (quanta != 0) {
             System.out.println("quanta: " + quanta);
         }
-        if (pNum == 1) {
-            System.out.println(memory[0].getKey() + " " + memory[0].getValue());
-            System.out.println(memory[1].getKey() + " " + memory[1].getValue());
-            System.out.println(memory[2].getKey() + " " + memory[2].getValue());
-            System.out.println(memory[3].getKey() + " " + memory[3].getValue());
-        } else if (pNum == 2) {
-            System.out.println(memory[9].getKey() + " " + memory[9].getValue());
-            System.out.println(memory[10].getKey() + " " + memory[10].getValue());
-            System.out.println(memory[11].getKey() + " " + memory[11].getValue());
-            System.out.println(memory[12].getKey() + " " + memory[12].getValue());
-        } else {
-            System.out.println(memory[20].getKey() + " " + memory[20].getValue());
-            System.out.println(memory[21].getKey() + " " + memory[21].getValue());
-            System.out.println(memory[22].getKey() + " " + memory[22].getValue());
-            System.out.println(memory[23].getKey() + " " + memory[23].getValue());
-        }
+
+            System.out.println(memory[pNum.id].getKey() + " " + memory[pNum.id].getValue());
+            System.out.println(memory[pNum.state].getKey() + " " + memory[pNum.state].getValue());
+            System.out.println(memory[pNum.PC].getKey() + " " + memory[pNum.PC].getValue());
+            System.out.println(memory[pNum.min].getKey() + " " + memory[pNum.min].getValue());
+
 
         System.out.println("-------------------------------------------------------------------");
     }
@@ -313,10 +319,11 @@ public class CPU {
         CPU C = new CPU();
         File file1 = new File("Program 1.txt");
         C.allocator(file1);
-        File file2 = new File("Program 2.txt");
-        C.allocator(file2);
         File file3 = new File("Program 3.txt");
         C.allocator(file3);
+        File file2 = new File("Program 2.txt");
+        C.allocator(file2);
+
 
         System.out.println("All memory elements: ");
         for (int i = 0; i < C.memory.length; i++) {
@@ -327,8 +334,6 @@ public class CPU {
             }
         }
 
-
-//writeFile("Test","1");
     }
 }
 
